@@ -1,7 +1,8 @@
-import streamlit as st
+import streamlit as st 
 import pandas as pd
 import matplotlib.pyplot as plt
 import gspread
+import json
 from google.oauth2.service_account import Credentials
 from datetime import datetime, timedelta
 from gspread_dataframe import get_as_dataframe
@@ -9,9 +10,9 @@ from gspread_dataframe import get_as_dataframe
 # Configurar la página
 st.set_page_config(layout='wide', page_title="Vista de Cultivo")
 
-# Conectar a Google Sheets
-scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
-creds = Credentials.from_service_account_file("credenciales.json", scopes=scope)
+# Conectar a Google Sheets usando st.secrets
+service_account_info = json.loads(st.secrets["gcp_service_account"].to_json())
+creds = Credentials.from_service_account_info(service_account_info)
 client = gspread.authorize(creds)
 sh = client.open("Cultivo en Acordeones")
 
@@ -32,21 +33,16 @@ df_cosecha['PESO GR'] = pd.to_numeric(df_cosecha['PESO GR'], errors='coerce')
 df_siembra['L'] = df_siembra['L'].astype(str).str.strip().str.upper()
 df_cosecha['L'] = df_cosecha['L'].astype(str).str.strip().str.upper()
 
-# --- Aquí empieza la modificación para PRODUCTO ---
-# Normalizar producto: quitar espacios y pasar a minúsculas
+# Normalizar PRODUCTO
 df_siembra['PRODUCTO'] = df_siembra['PRODUCTO'].astype(str).str.strip().str.lower()
 df_cosecha['PRODUCTO'] = df_cosecha['PRODUCTO'].astype(str).str.strip().str.lower()
 
-# Diccionario de corrección de nombres comunes mal escritos
 correcciones = {
     'albahca': 'albahaca',
     'albahaka': 'albahaca',
     'albhaca': 'albahaca',
     'cilantro ': 'cilantro',
-    'cilantro': 'cilantro',
     'cilntro': 'cilantro',
-    'albahca': 'albahaca',
-    # Añade más correcciones que detectes
 }
 
 # Aplicar correcciones
@@ -55,36 +51,28 @@ df_cosecha['PRODUCTO'] = df_cosecha['PRODUCTO'].replace(correcciones)
 
 # Filtros de la app
 st.sidebar.title("Filtros")
-
 fecha_hoy = pd.Timestamp.today()
 fecha_inicio = st.sidebar.date_input("Fecha desde", value=fecha_hoy - timedelta(days=7))
 fecha_fin = st.sidebar.date_input("Fecha hasta", value=fecha_hoy)
-
 producto_filtro = st.sidebar.multiselect(
     "Filtrar por producto",
     options=sorted(df_siembra['PRODUCTO'].dropna().unique()),
     default=None
 )
 
-# Lotes activos
+# Filtros y combinaciones
 lotes_activos = df_siembra[~df_siembra['ID'].isin(df_cosecha['ID'])]
-
-# Filtro de fecha y producto
 lotes_filtrados = lotes_activos[
     (lotes_activos['FECHA'] >= pd.to_datetime(fecha_inicio)) &
     (lotes_activos['FECHA'] <= pd.to_datetime(fecha_fin))
 ]
-
 if producto_filtro:
     lotes_filtrados = lotes_filtrados[lotes_filtrados['PRODUCTO'].isin(producto_filtro)]
 
-# Combinaciones válidas (sin huella 4)
 combinaciones = [(6,1), (6,3), (6,5), (6,7), (3,2), (3,4), (3,6), (3,8)]
 
-# Escala de color
 def fecha_a_color_por_dias(fecha):
-    if fecha in ['NN', 'Sin Fecha']:
-        return 'white'
+    if fecha in ['NN', 'Sin Fecha']: return 'white'
     try:
         dias = (pd.Timestamp.today().normalize() - pd.to_datetime(fecha)).days
         dias = max(0, min(dias, 45))
@@ -92,7 +80,6 @@ def fecha_a_color_por_dias(fecha):
     except:
         return 'white'
 
-# Resumen por lado
 def resumen_lado(df_siem, df_cos, h, p, lado):
     siem = df_siem[(df_siem['H']==h)&(df_siem['P']==p)&(df_siem['L'].str.upper()==lado)&
                    (df_siem['FECHA'] >= pd.to_datetime(fecha_inicio)) & (df_siem['FECHA'] <= pd.to_datetime(fecha_fin))]
@@ -105,14 +92,11 @@ def resumen_lado(df_siem, df_cos, h, p, lado):
         resumen += f"{prod}: {int(pl.get(prod, 0))} Plant / {int(gr.get(prod, 0))} g\n"
     return resumen.strip()
 
-# Dibujar cada piso
 def dibujar_piso(df, h, p):
     A = df[(df['H']==h)&(df['P']==p)&(df['L'].str.upper()=='A')]
     B = df[(df['H']==h)&(df['P']==p)&(df['L'].str.upper()=='B')]
     fig, ax = plt.subplots(figsize=(12, 5))
-    ax.set_xlim(-1, 13)
-    ax.set_ylim(-2.5, 3.2)
-    ax.set_aspect('equal')
+    ax.set_xlim(-1, 13); ax.set_ylim(-2.5, 3.2); ax.set_aspect('equal')
     ax.set_title(f'Huella {h} — Piso {p}', fontsize=16)
 
     def P(t): return (12*t, 0.6 + (1.9 - 0.6)*t)
@@ -144,8 +128,7 @@ def dibujar_piso(df, h, p):
             x0,y0 = P(t0); x1,y1 = P(t1)
             pts = [(x0,y0),(x1,y1),(x1,2.5 if arriba else 0),(x0,2.5 if arriba else 0)]
             ax.add_patch(plt.Polygon(pts, facecolor=reg['color'], edgecolor='black', alpha=0.9, linewidth=0.6))
-            xm = (x0+x1)/2
-            ym = ((y0+(2.5 if arriba else 0))/2 + (y1+(2.5 if arriba else 0))/2)/2
+            xm = (x0+x1)/2; ym = ((y0+(2.5 if arriba else 0))/2 + (y1+(2.5 if arriba else 0))/2)/2
             ax.text(xm, ym, f"{reg['ID']}\n{reg['PRODUCTO']}\n{reg['CANTIDAD_ACORDEONES']} acor",
                     ha='center', va='center', fontsize=5, color='black')
 
@@ -158,7 +141,6 @@ def dibujar_piso(df, h, p):
     ax.axis('off')
     st.pyplot(fig)
 
-# Mostrar todos los gráficos
 for h, p in combinaciones:
     dibujar_piso(lotes_filtrados, h, p)
     st.markdown("---")
