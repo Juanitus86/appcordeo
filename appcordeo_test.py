@@ -1,35 +1,24 @@
 import streamlit as st
-import gspread
 from google.oauth2.service_account import Credentials
+import gspread
 
-st.title("Prueba conexión Google Sheets")
+# Cargar credenciales desde secrets
+gcp_creds = st.secrets["gcp_service_account"]
 
-# Cargar credenciales desde st.secrets
-try:
-    service_account_info = st.secrets["gcp_service_account"]
-except KeyError:
-    st.error("No se encontró 'gcp_service_account' en st.secrets. Configurá las credenciales en Streamlit Cloud.")
-    st.stop()
+# Crear credenciales con alcance para Google Sheets
+creds = Credentials.from_service_account_info(gcp_creds, scopes=["https://www.googleapis.com/auth/spreadsheets"])
 
-try:
-    creds = Credentials.from_service_account_info(service_account_info)
-    client = gspread.authorize(creds)
-except Exception as e:
-    st.error(f"Error autenticando con Google Sheets: {e}")
-    st.stop()
+# Autorizar cliente gspread
+client = gspread.authorize(creds)
 
-# URL de tu Google Sheet (modificá con la tuya)
-sheet_url = st.text_input("URL de Google Sheets para probar:", "")
+# ID de la planilla Google Sheets
+SPREADSHEET_ID = "1nlKCJcshLWilc6rVbQezExz6Dvx6OKl-vFpCVlgf0og"
 
-if sheet_url:
-    try:
-        spreadsheet = client.open_by_url(sheet_url)
-        worksheet = spreadsheet.sheet1  # Abrir la primera hoja
-        data = worksheet.get_all_records()
+# Abrir la primera hoja de la planilla
+sheet = client.open_by_key(SPREADSHEET_ID).sheet1
 
-        st.write("Datos cargados:")
-        st.dataframe(data)
-    except Exception as e:
-        st.error(f"Error accediendo a la hoja: {e}")
-else:
-    st.info("Ingresá la URL de la hoja de cálculo arriba para cargar datos.")
+# Obtener todos los registros
+data = sheet.get_all_records()
+
+st.write("Datos cargados desde Google Sheets:")
+st.dataframe(data)
