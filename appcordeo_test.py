@@ -42,6 +42,13 @@ st.markdown("""
         .stRadio>div>label {
             font-size: 1.1em;
         }
+        input[type=text] {
+            font-size: 1.1em;
+            padding: 8px;
+            border-radius: 6px;
+            border: 1px solid #ccc;
+            width: 100%;
+        }
     </style>
 """, unsafe_allow_html=True)
 
@@ -62,12 +69,22 @@ productos = [
 producto = st.selectbox("Producto", options=sorted(productos))
 
 st.markdown("#### Huella (H)")
-huella = st.radio("", options=[3, 6], horizontal=True, label_visibility="collapsed")
+huella = st.radio("", options=[6, 3], horizontal=True, label_visibility="collapsed")
 
-piso = st.selectbox("Piso (P)", options=[1, 2, 3, 4, 5, 6, 7, 8])
+# Pisos válidos según huella
+pisos_por_huella = {
+    6: [1, 3, 5, 7],
+    3: [2, 4, 6, 8]
+}
+pisos_validos = pisos_por_huella[huella]
+
+st.markdown("#### Piso (P)")
+piso = st.radio("", options=pisos_validos, horizontal=True, label_visibility="collapsed")
 
 st.markdown("#### Lado (L)")
 lado = st.radio("", ("A", "B"), horizontal=True, label_visibility="collapsed")
+
+id_manual = st.text_input("ID (ingresalo manualmente)")
 
 if operacion == "Siembra":
     acordeones = st.number_input("Cantidad de acordeones (#ACOR)", min_value=1, step=1)
@@ -76,16 +93,16 @@ if operacion == "Siembra":
     observaciones = st.text_area("Observaciones")
     if st.button("📥 Cargar Siembra"):
         fila = [
-            str(fecha),       # FECHA
-            producto,         # PRODUCTO
-            "",               # ID (vacío, a completar manualmente si se quiere)
-            huella,           # H
-            piso,             # P
-            lado,             # L
-            acordeones,       # #ACOR
-            plantas,          # #PLANT
-            merma,            # #MERMA
-            observaciones     # Observaciones
+            str(fecha),     # FECHA
+            producto,       # PRODUCTO
+            id_manual,      # ID manual
+            huella,         # H
+            piso,           # P
+            lado,           # L
+            acordeones,     # #ACOR
+            plantas,        # #PLANT
+            merma,          # #MERMA
+            observaciones   # Observaciones
         ]
         sheet_siembras.append_row(fila)
         st.success("Datos de siembra cargados correctamente.")
@@ -96,15 +113,15 @@ elif operacion == "Cosecha":
     observaciones = st.text_area("Observaciones")
     if st.button("📥 Cargar Cosecha"):
         fila = [
-            str(fecha),      # FECHA
-            producto,        # PRODUCTO
-            "",              # ID
-            huella,          # H
-            piso,            # P
-            lado,            # L
-            acordeones,      # #ACOR
-            peso,            # PESO GR
-            observaciones    # Observaciones
+            str(fecha),     # FECHA
+            producto,       # PRODUCTO
+            id_manual,      # ID manual
+            huella,         # H
+            piso,           # P
+            lado,           # L
+            acordeones,     # #ACOR
+            peso,           # PESO GR
+            observaciones   # Observaciones
         ]
         sheet_cosechas.append_row(fila)
         st.success("Datos de cosecha cargados correctamente.")
