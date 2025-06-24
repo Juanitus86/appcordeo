@@ -133,7 +133,7 @@ def dibujar_piso(df, h, p):
             registros.append({
                 'ID': row['ID'], 'PRODUCTO': row['PRODUCTO'],
                 'CANTIDAD_ACORDEONES': acor,
-                'FECHA': row['FECHA'].strftime('%d-%m-%Y') if pd.notnull(row['FECHA']) else 'Sin Fecha',
+                'FECHA': row['FECHA'].strftime('%d/%m') if pd.notnull(row['FECHA']) else 'Sin Fecha',
                 'color': fecha_a_color_por_dias(row['FECHA']), 'es_nn': False
             })
             total += acor
@@ -149,8 +149,8 @@ def dibujar_piso(df, h, p):
             pts = [(x0,y0),(x1,y1),(x1,2.5 if arriba else 0),(x0,2.5 if arriba else 0)]
             ax.add_patch(plt.Polygon(pts, facecolor=reg['color'], edgecolor='black', alpha=0.9, linewidth=0.6))
             xm = (x0+x1)/2; ym = ((y0+(2.5 if arriba else 0))/2 + (y1+(2.5 if arriba else 0))/2)/2
-            ax.text(xm, ym, f"{reg['ID']}\n{reg['FECHA']}\n{reg['PRODUCTO']}\n{reg['CANTIDAD_ACORDEONES']} acor",
-        ha='center', va='center', fontsize=6, color='black')
+            ax.text(xm, ym, f"{reg['ID']}\n{reg['FECHA']}\n{reg['PRODUCTO']}\n{reg['CANTIDAD_ACORDEONES']} #A",
+        ha='center', va='center', fontsize=5, color='black')
 
     fill_bandas(A, True)
     fill_bandas(B, False)
