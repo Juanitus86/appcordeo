@@ -64,12 +64,14 @@ producto_filtro = st.sidebar.multiselect(
     default=None
 )
 
+# Filtros y combinaciones
+# Para visualización: mostrar todos los lotes activos, sin limitar por fecha
 lotes_activos = df_siembra[~df_siembra['ID'].isin(df_cosecha['ID'])]
 
+# Si hay productos seleccionados, filtrar los visuales también
 if producto_filtro:
-    lotes_filtrados = lotes_activos[lotes_activos['PRODUCTO'].isin(producto_filtro)]
-else:
-    lotes_filtrados = lotes_activos
+    lotes_visuales = lotes_visuales[lotes_visuales['PRODUCTO'].isin(producto_filtro)]
+
 
 combinaciones = [(6,1), (6,3), (6,5), (6,7), (3,2), (3,4), (3,6), (3,8)]
 
@@ -144,5 +146,5 @@ def dibujar_piso(df, h, p):
     st.pyplot(fig)
 
 for h, p in combinaciones:
-    dibujar_piso(lotes_visuales, h, p)
+    dibujar_piso(lotes_filtrados, h, p)
     st.markdown("---")
