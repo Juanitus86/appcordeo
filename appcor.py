@@ -2,7 +2,11 @@ import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
 import gspread
+<<<<<<< HEAD
 import json
+=======
+
+>>>>>>> d8488d30b0a03a00adccba89f384369edbdec6b5
 from google.oauth2.service_account import Credentials
 from datetime import datetime, timedelta
 from gspread_dataframe import get_as_dataframe
@@ -10,9 +14,21 @@ from gspread_dataframe import get_as_dataframe
 # Configurar la página
 st.set_page_config(layout='wide', page_title="Vista de Cultivo")
 
+<<<<<<< HEAD
 # Conectar a Google Sheets usando st.secrets
 service_account_info = json.loads(st.secrets["gcp_service_account"].to_json())
 creds = Credentials.from_service_account_info(service_account_info)
+=======
+# Conectar a Google Sheets
+import json
+from google.oauth2.service_account import Credentials
+
+scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
+
+# Leer las credenciales desde secrets.toml (en Streamlit Cloud)
+service_account_info = json.loads(st.secrets["gcp_service_account"].to_json())
+creds = Credentials.from_service_account_info(service_account_info, scopes=scope)
+>>>>>>> d8488d30b0a03a00adccba89f384369edbdec6b5
 client = gspread.authorize(creds)
 sh = client.open("Cultivo en Acordeones")
 
