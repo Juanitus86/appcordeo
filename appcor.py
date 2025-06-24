@@ -1,33 +1,7 @@
-import streamlit as st 
-import pandas as pd
-import matplotlib.pyplot as plt
-import gspread
-import json
-
-from google.oauth2.service_account import Credentials
-from datetime import datetime, timedelta
-from gspread_dataframe import get_as_dataframe
-
-# Configurar la página
-st.set_page_config(layout='wide', page_title="Vista de Cultivo")
-
-import json
-from google.oauth2.service_account import Credentials
-
-# Conectar a Google Sheets usando st.secrets
-scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
-creds = Credentials.from_service_account_info(st.secrets["gcp_service_account"], scopes=scope)
-client = gspread.authorize(creds)
-sh = client.open("Cultivo en Acordeones")
-
-# Leer hojas
-df_siembra = get_as_dataframe(sh.worksheet('SIEMBRA - INGRESOS'), evaluate_formulas=True).dropna(how='all')
-df_cosecha = get_as_dataframe(sh.worksheet('COSECHA - EGRESOS'), evaluate_formulas=True).dropna(how='all')
-
-# Limpieza
-df_siembra.columns = df_siembra.columns.str.strip()
+a.columns = df_siembra.columns.str.strip()
 df_cosecha.columns = df_cosecha.columns.str.strip()
 
+# Tipado de columnas
 df_siembra['FECHA'] = pd.to_datetime(df_siembra['FECHA'], dayfirst=True, errors='coerce')
 df_cosecha['FECHA'] = pd.to_datetime(df_cosecha['FECHA'], dayfirst=True, errors='coerce')
 df_siembra['#ACOR'] = pd.to_numeric(df_siembra['#ACOR'], errors='coerce')
@@ -66,12 +40,8 @@ producto_filtro = st.sidebar.multiselect(
 
 # Filtros y combinaciones
 lotes_activos = df_siembra[~df_siembra['ID'].isin(df_cosecha['ID'])]
-lotes_filtrados = lotes_activos[
-    (lotes_activos['FECHA'] >= pd.to_datetime(fecha_inicio)) &
-    (lotes_activos['FECHA'] <= pd.to_datetime(fecha_fin))
-]
 if producto_filtro:
-    lotes_filtrados = lotes_filtrados[lotes_filtrados['PRODUCTO'].isin(producto_filtro)]
+    lotes_activos = lotes_activos[lotes_activos['PRODUCTO'].isin(producto_filtro)]
 
 combinaciones = [(6,1), (6,3), (6,5), (6,7), (3,2), (3,4), (3,6), (3,8)]
 
@@ -86,9 +56,9 @@ def fecha_a_color_por_dias(fecha):
 
 def resumen_lado(df_siem, df_cos, h, p, lado):
     siem = df_siem[(df_siem['H']==h)&(df_siem['P']==p)&(df_siem['L'].str.upper()==lado)&
-                   (df_siem['FECHA'] >= pd.to_datetime(fecha_inicio)) & (df_siem['FECHA'] <= pd.to_datetime(fecha_fin))]
+                   (df_siem['FECHA'] >= fecha_inicio) & (df_siem['FECHA'] <= fecha_fin)]
     cos = df_cos[(df_cos['H']==h)&(df_cos['P']==p)&(df_cos['L'].str.upper()==lado)&
-                 (df_cos['FECHA'] >= pd.to_datetime(fecha_inicio)) & (df_cos['FECHA'] <= pd.to_datetime(fecha_fin))]
+                 (df_cos['FECHA'] >= fecha_inicio) & (df_cos['FECHA'] <= fecha_fin)]
     pl = siem.groupby('PRODUCTO')['#PLANT'].sum()
     gr = cos.groupby('PRODUCTO')['PESO GR'].sum()
     resumen = f"{fecha_inicio.strftime('%d/%m/%Y')} a {fecha_fin.strftime('%d/%m/%Y')}\n"
@@ -99,9 +69,9 @@ def resumen_lado(df_siem, df_cos, h, p, lado):
 def dibujar_piso(df, h, p):
     A = df[(df['H']==h)&(df['P']==p)&(df['L'].str.upper()=='A')]
     B = df[(df['H']==h)&(df['P']==p)&(df['L'].str.upper()=='B')]
-    fig, ax = plt.subplots(figsize=(12, 5))
+    fig, ax = plt.subplots(figsize=(16, 8))
     ax.set_xlim(-1, 13); ax.set_ylim(-2.5, 3.2); ax.set_aspect('equal')
-    ax.set_title(f'Huella {h} — Piso {p}', fontsize=16)
+    ax.set_title(f'Huella {h} — Piso {p}', fontsize=18, weight='bold', loc='center')
 
     def P(t): return (12*t, 0.6 + (1.9 - 0.6)*t)
     xs, ys = zip(*[P(t) for t in (0,1)])
@@ -113,7 +83,7 @@ def dibujar_piso(df, h, p):
         registros = []; total = 0
         for _, row in lotes.iterrows():
             acor = int(row['#ACOR'])
-            if total + acor > 55: continue
+            if total + acor > 52: continue
             registros.append({
                 'ID': row['ID'], 'PRODUCTO': row['PRODUCTO'],
                 'CANTIDAD_ACORDEONES': acor,
@@ -133,8 +103,8 @@ def dibujar_piso(df, h, p):
             pts = [(x0,y0),(x1,y1),(x1,2.5 if arriba else 0),(x0,2.5 if arriba else 0)]
             ax.add_patch(plt.Polygon(pts, facecolor=reg['color'], edgecolor='black', alpha=0.9, linewidth=0.6))
             xm = (x0+x1)/2; ym = ((y0+(2.5 if arriba else 0))/2 + (y1+(2.5 if arriba else 0))/2)/2
-            ax.text(xm, ym, f"{reg['ID']}\n{reg['PRODUCTO']}\n{reg['CANTIDAD_ACORDEONES']} acor",
-                    ha='center', va='center', fontsize=5, color='black')
+            ax.text(xm, ym, f"{reg['ID']}\n{reg['FECHA']}\n{reg['PRODUCTO']}\n{reg['CANTIDAD_ACORDEONES']} acor",
+                    ha='center', va='center', fontsize=6, color='black')
 
     fill_bandas(A, True)
     fill_bandas(B, False)
@@ -146,5 +116,5 @@ def dibujar_piso(df, h, p):
     st.pyplot(fig)
 
 for h, p in combinaciones:
-    dibujar_piso(lotes_filtrados, h, p)
+    dibujar_piso(lotes_activos, h, p)
     st.markdown("---")
