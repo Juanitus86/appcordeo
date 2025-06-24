@@ -4,7 +4,7 @@ from datetime import date
 # Configuración inicial de la app
 st.set_page_config(page_title="Carga de Datos de Cultivo", layout="centered")
 
-# Aplicar estilo claro personalizado
+# Aplicar estilo claro personalizado con botones tipo cápsula
 st.markdown("""
     <style>
         body {
@@ -14,10 +14,14 @@ st.markdown("""
             width: 100%;
             padding: 1em;
             font-size: 1.1em;
-            background-color: #e6e6e6;
-            color: #000;
+            background-color: #d8f3dc;
+            color: #1b4332;
             border: none;
-            border-radius: 10px;
+            border-radius: 30px;
+            transition: background-color 0.3s;
+        }
+        .stButton>button:hover {
+            background-color: #b7e4c7;
         }
         .stRadio>div>label {
             font-size: 1.1em;
@@ -34,10 +38,24 @@ st.success(f"Has seleccionado: **{operacion}**")
 
 # Campos comunes para ambas operaciones
 fecha = st.date_input("Fecha", value=date.today())
-producto = st.text_input("Producto")
-huella = st.selectbox("Huella", options=[1, 2, 3, 4, 5, 6])
+
+# Producto desde biblioteca externa editable
+productos = [
+        "Albahaca verde", "Albahaca Morada", "Pak choi", "Pakchoi Morado", "Arugula", "Acelga arcoiris", "Acelga Natural", "Betabel red", "Betabel golden", "Sorrel", "Shizo", "Kale red", "Kale verde", "Viola Flor", 
+
+]
+producto = st.selectbox("Producto", options=sorted(productos))
+
+# Botones tipo cápsula para Huella
+st.markdown("#### Huella")
+huella = st.radio("", options=[3, 6], horizontal=True, label_visibility="collapsed")
+
+# Piso normal
 piso = st.selectbox("Piso", options=[1, 2, 3, 4, 5, 6, 7, 8])
-lado = st.radio("Lado", ("A", "B"), horizontal=True)
+
+# Botones tipo cápsula para Lado
+st.markdown("#### Lado")
+lado = st.radio("", ("A", "B"), horizontal=True, label_visibility="collapsed")
 
 if operacion == "Siembra":
     acordeones = st.number_input("Cantidad de acordeones", min_value=1, step=1)
