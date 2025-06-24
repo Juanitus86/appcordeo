@@ -42,12 +42,28 @@ df_siembra['PRODUCTO'] = df_siembra['PRODUCTO'].astype(str).str.strip().str.lowe
 df_cosecha['PRODUCTO'] = df_cosecha['PRODUCTO'].astype(str).str.strip().str.lower()
 
 correcciones = {
-    'albahca': 'albahaca',
-    'albahaka': 'albahaca',
-    'albhaca': 'albahaca',
-    'cilantro ': 'cilantro',
-    'cilntro': 'cilantro',
+    # Albahaca
+    'albahaca': 'albahaca', 'albahca': 'albahaca', 'albahaka': 'albahaca', 'albhaca': 'albahaca',
+    # Pak choi
+    'pak choi': 'pakchoi', 'pakchoi': 'pakchoi', 'pakchoy': 'pakchoi', 'pak-choy': 'pakchoi',
+    # Arúgula
+    'arugula': 'arugula', 'rúgula': 'arugula', 'arúgula': 'arugula', 'arula': 'arugula',
+    # Acelga
+    'acelga': 'acelga', 'acelgas': 'acelga',
+    # Betabel
+    'betabel red': 'betabel red', 'betabel rojo': 'betabel red', 'betabelred': 'betabel red',
+    'betabel golden': 'betabel golden', 'betabel gold': 'betabel golden', 'betabel dorado': 'betabel golden',
+    # Sorrel
+    'sorrel': 'sorrel', 'sorel': 'sorrel',
+    # Shizo
+    'shizo': 'shizo', 'shiso': 'shizo', 'shizou': 'shizo',
+    # Kale
+    'kale red': 'kale red', 'kale rojo': 'kale red', 'kalerojo': 'kale red',
+    'kale verde': 'kale verde', 'kale green': 'kale verde', 'kalegreen': 'kale verde',
+    # Cilantro
+    'cilantro ': 'cilantro', 'cilntro': 'cilantro', 'cilantro': 'cilantro',
 }
+
 
 # Aplicar correcciones
 df_siembra['PRODUCTO'] = df_siembra['PRODUCTO'].replace(correcciones)
@@ -133,8 +149,8 @@ def dibujar_piso(df, h, p):
             pts = [(x0,y0),(x1,y1),(x1,2.5 if arriba else 0),(x0,2.5 if arriba else 0)]
             ax.add_patch(plt.Polygon(pts, facecolor=reg['color'], edgecolor='black', alpha=0.9, linewidth=0.6))
             xm = (x0+x1)/2; ym = ((y0+(2.5 if arriba else 0))/2 + (y1+(2.5 if arriba else 0))/2)/2
-            ax.text(xm, ym, f"{reg['ID']}\n{reg['PRODUCTO']}\n{reg['CANTIDAD_ACORDEONES']} acor",
-                    ha='center', va='center', fontsize=5, color='black')
+            ax.text(xm, ym, f"{reg['ID']}\n{reg['FECHA']}\n{reg['PRODUCTO']}\n{reg['CANTIDAD_ACORDEONES']} acor",
+        ha='center', va='center', fontsize=6, color='black')
 
     fill_bandas(A, True)
     fill_bandas(B, False)
