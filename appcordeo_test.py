@@ -68,6 +68,8 @@ productos = [
 ]
 producto = st.selectbox("Producto", options=sorted(productos))
 
+id_manual = st.text_input("ID (ingresalo manualmente)")
+
 st.markdown("#### Huella (H)")
 huella = st.radio("", options=[6, 3], horizontal=True, label_visibility="collapsed")
 
@@ -83,8 +85,6 @@ piso = st.radio("", options=pisos_validos, horizontal=True, label_visibility="co
 
 st.markdown("#### Lado (L)")
 lado = st.radio("", ("A", "B"), horizontal=True, label_visibility="collapsed")
-
-id_manual = st.text_input("ID (ingresalo manualmente)")
 
 if operacion == "Siembra":
     acordeones = st.number_input("Cantidad de acordeones (#ACOR)", min_value=1, step=1)
