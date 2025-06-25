@@ -1,4 +1,4 @@
-import streamlit as st 
+import streamlit as st  
 import pandas as pd
 import matplotlib.pyplot as plt
 import gspread
@@ -6,16 +6,12 @@ import json
 import io
 import PIL.Image
 
-
 from google.oauth2.service_account import Credentials
 from datetime import datetime, timedelta
 from gspread_dataframe import get_as_dataframe
 
 # Configurar la página
 st.set_page_config(layout='wide', page_title="Vista de Cultivo")
-
-import json
-from google.oauth2.service_account import Credentials
 
 # Conectar a Google Sheets usando st.secrets
 scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
@@ -45,28 +41,18 @@ df_siembra['PRODUCTO'] = df_siembra['PRODUCTO'].astype(str).str.strip().str.lowe
 df_cosecha['PRODUCTO'] = df_cosecha['PRODUCTO'].astype(str).str.strip().str.lower()
 
 correcciones = {
-    # Albahaca
     'albahaca': 'albahaca', 'albahca': 'albahaca', 'albahaka': 'albahaca', 'albhaca': 'albahaca',
-    # Pak choi
     'pak choi': 'pakchoi', 'pakchoi': 'pakchoi', 'pakchoy': 'pakchoi', 'pak-choy': 'pakchoi',
-    # Arúgula
     'arugula': 'arugula', 'rúgula': 'arugula', 'arúgula': 'arugula', 'arula': 'arugula',
-    # Acelga
     'acelga': 'acelga', 'acelgas': 'acelga',
-    # Betabel
     'betabel red': 'betabel red', 'betabel rojo': 'betabel red', 'betabelred': 'betabel red',
     'betabel golden': 'betabel golden', 'betabel gold': 'betabel golden', 'betabel dorado': 'betabel golden',
-    # Sorrel
     'sorrel': 'sorrel', 'sorel': 'sorrel',
-    # Shizo
     'shizo': 'shizo', 'shiso': 'shizo', 'shizou': 'shizo',
-    # Kale
     'kale red': 'kale red', 'kale rojo': 'kale red', 'kalerojo': 'kale red',
     'kale verde': 'kale verde', 'kale green': 'kale verde', 'kalegreen': 'kale verde',
-    # Cilantro
     'cilantro ': 'cilantro', 'cilntro': 'cilantro', 'cilantro': 'cilantro',
 }
-
 
 # Aplicar correcciones
 df_siembra['PRODUCTO'] = df_siembra['PRODUCTO'].replace(correcciones)
@@ -84,13 +70,9 @@ producto_filtro = st.sidebar.multiselect(
 )
 
 lotes_activos = df_siembra[~df_siembra['ID'].isin(df_cosecha['ID'])]
-
-lotes_filtrados = lotes_activos.copy()  # <- Esto es clave
-
+lotes_filtrados = lotes_activos.copy()
 if producto_filtro:
     lotes_filtrados = lotes_filtrados[lotes_filtrados['PRODUCTO'].isin(producto_filtro)]
-
-
 
 combinaciones = [(6,1), (6,3), (6,5), (6,7), (3,2), (3,4), (3,6), (3,8)]
 
@@ -153,7 +135,7 @@ def dibujar_piso(df, h, p):
             ax.add_patch(plt.Polygon(pts, facecolor=reg['color'], edgecolor='black', alpha=0.9, linewidth=0.6))
             xm = (x0+x1)/2; ym = ((y0+(2.5 if arriba else 0))/2 + (y1+(2.5 if arriba else 0))/2)/2
             ax.text(xm, ym, f"{reg['ID']}\n{reg['FECHA']}\n{reg['PRODUCTO']}\n{reg['CANTIDAD_ACORDEONES']} #A",
-        ha='center', va='center', fontsize=5, color='black')
+                     ha='center', va='center', fontsize=5, color='black')
 
     fill_bandas(A, True)
     fill_bandas(B, False)
@@ -162,13 +144,14 @@ def dibujar_piso(df, h, p):
     ax.text(6, -1.5, resumen, fontsize=9, ha='center', va='top',
             bbox=dict(facecolor='#fefce8', edgecolor='gray', linewidth=0.5, alpha=0.9))
     ax.axis('off')
+
     # Convertir el gráfico en imagen PNG y mostrarla con capacidad de zoom
     buf = io.BytesIO()
     fig.savefig(buf, format="png", dpi=300, bbox_inches="tight")
     buf.seek(0)
     image = PIL.Image.open(buf)
 
-    st.image(image, use_column_width=True)
+    st.image(image, use_container_width=True)
 
 # Dibujar los pisos
 for h, p in combinaciones:
