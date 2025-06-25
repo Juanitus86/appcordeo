@@ -3,6 +3,9 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import gspread
 import json
+import io
+import PIL.Image
+
 
 from google.oauth2.service_account import Credentials
 from datetime import datetime, timedelta
@@ -159,8 +162,15 @@ def dibujar_piso(df, h, p):
     ax.text(6, -1.5, resumen, fontsize=9, ha='center', va='top',
             bbox=dict(facecolor='#fefce8', edgecolor='gray', linewidth=0.5, alpha=0.9))
     ax.axis('off')
-    st.pyplot(fig)
+    # Convertir el gráfico en imagen PNG y mostrarla con capacidad de zoom
+    buf = io.BytesIO()
+    fig.savefig(buf, format="png", dpi=300, bbox_inches="tight")
+    buf.seek(0)
+    image = PIL.Image.open(buf)
 
+    st.image(image, use_column_width=True)
+
+# Dibujar los pisos
 for h, p in combinaciones:
     dibujar_piso(lotes_filtrados, h, p)
     st.markdown("---")
