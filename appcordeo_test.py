@@ -90,7 +90,7 @@ if operacion == "Siembra":
     acordeones = st.number_input("Cantidad de acordeones (#ACOR)", min_value=1, step=1)
     plantas = st.number_input("Cantidad de plántulas (#PLANT)", min_value=1, step=1)
     merma = st.number_input("Cantidad de merma (#MERMA)", min_value=0, step=1)
-    observaciones = st.text_area("Observaciones")
+    observaciones = st.text_area("Observaciones", height=150)
     if st.button("📥 Cargar Siembra"):
         fila = [
             str(fecha),     # FECHA
@@ -110,7 +110,7 @@ if operacion == "Siembra":
 elif operacion == "Cosecha":
     acordeones = st.number_input("Cantidad de acordeones (#ACOR)", min_value=1, step=1)
     peso = st.number_input("Peso cosechado (PESO GR)", min_value=1, step=1)
-    observaciones = st.text_area("Observaciones")
+    observaciones = st.text_area("Observaciones", height=150)
     if st.button("📥 Cargar Cosecha"):
         fila = [
             str(fecha),     # FECHA
